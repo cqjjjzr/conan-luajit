@@ -1,11 +1,5 @@
 #include <cstring>
-
-extern "C" {
-    #include "lua.h"
-    #include "lualib.h"
-    #include "lauxlib.h"
-}
-
+#include "lua.hpp"
 int main(int argc, char* argv[])
 {
     lua_State * L = lua_open();
