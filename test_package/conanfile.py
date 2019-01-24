@@ -10,11 +10,7 @@ class LuajitTestConan(ConanFile):
         cmake.configure()
         cmake.build()
 
-    def imports(self):
-        self.copy("*.dll", dst="bin", src="bin")
-        self.copy("*.dylib*", dst="bin", src="lib")
-        self.copy('*.so*', dst='bin', src='lib')
-
     def test(self):
-        os.chdir("bin")
-        self.run(".%sexample" % os.sep)
+        assert os.path.isfile(os.path.join(self.deps_cpp_info["luajit"].rootpath, "licenses", "COPYRIGHT"))
+        bin_path = os.path.join("bin", "example")
+        self.run(bin_path, run_environment=True)

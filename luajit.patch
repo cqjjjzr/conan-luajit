@@ -1,0 +1,86 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9a8b5c0..5bda2b3 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -303,7 +303,7 @@ set ( LJCORE_C
+   ${LJLIB_C}
+ )
+ 
+-add_library ( liblua SHARED ${LJCORE_C} ${DEPS} )
++add_library ( liblua ${LJCORE_C} ${DEPS} )
+ target_link_libraries ( liblua ${LIBS} )
+ set_target_properties ( liblua PROPERTIES OUTPUT_NAME lua CLEAN_DIRECT_OUTPUT 1 )
+ 
+@@ -318,11 +318,14 @@ if ( LUA_BUILD_WLUA )
+   install_executable ( wluajit )
+ endif ()
+ 
++export(TARGETS ${PROJECT_NAME}
++       NAMESPACE ${PROJECT_NAME}::
++       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake")
++
+ ## INSTALL
+ install_executable( luajit )
+ install_library( liblua )
+ install_header( src/lua.h src/luajit.h src/lua.hpp ${CMAKE_CURRENT_BINARY_DIR}/luaconf.h src/lualib.h src/lauxlib.h )
+-
+-install_doc ( doc/ )
+-install_foo ( etc/ )
+-install_data ( COPYRIGHT README.md )
++install(EXPORT ${PROJECT_NAME}-config
++        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/cmake"
++        NAMESPACE ${PROJECT_NAME}::)
+diff --git a/cmake/dist.cmake b/cmake/dist.cmake
+index 310ef94..adac0eb 100644
+--- a/cmake/dist.cmake
++++ b/cmake/dist.cmake
+@@ -1,6 +1,6 @@
+ # LuaDist CMake utility library.
+ # Provides sane project defaults and macros common to LuaDist CMake builds.
+-# 
++#
+ # Copyright (C) 2007-2012 LuaDist.
+ # by David Manura, Peter Drahoš
+ # Redistribution and use of this file is allowed according to the terms of the MIT license.
+@@ -60,7 +60,7 @@ set ( INSTALL_SHARE share CACHE PATH "Directory for shared data." )
+ option ( INSTALL_VERSION
+       "Install runtime libraries and executables with version information." OFF)
+ set ( INSTALL_DATA ${INSTALL_SHARE}/${DIST_NAME} CACHE PATH
+-      "Directory the package can store documentation, tests or other data in.")  
++      "Directory the package can store documentation, tests or other data in.")
+ set ( INSTALL_DOC  ${INSTALL_DATA}/doc CACHE PATH
+       "Recommended directory to install documentation into.")
+ set ( INSTALL_EXAMPLE ${INSTALL_DATA}/example CACHE PATH
+@@ -107,16 +107,16 @@ macro ( parse_arguments prefix arg_names option_names)
+ 
+   set ( current_arg_name DEFAULT_ARGS )
+   set ( current_arg_list )
+-  foreach ( arg ${ARGN} )            
+-    set ( larg_names ${arg_names} )    
+-    list ( FIND larg_names "${arg}" is_arg_name )                   
++  foreach ( arg ${ARGN} )
++    set ( larg_names ${arg_names} )
++    list ( FIND larg_names "${arg}" is_arg_name )
+     if ( is_arg_name GREATER -1 )
+       set ( ${prefix}_${current_arg_name} ${current_arg_list} )
+       set ( current_arg_name ${arg} )
+       set ( current_arg_list )
+     else ()
+-      set ( loption_names ${option_names} )    
+-      list ( FIND loption_names "${arg}" is_option )            
++      set ( loption_names ${option_names} )
++      list ( FIND loption_names "${arg}" is_option )
+       if ( is_option GREATER -1 )
+         set ( ${prefix}_${arg} TRUE )
+       else ()
+@@ -160,8 +160,9 @@ macro ( install_library )
+                               SOVERSION ${DIST_VERSION} )
+     endif ()
+     install ( TARGETS ${_file}
++              EXPORT luajit-config
+               RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT Runtime
+-              LIBRARY DESTINATION ${INSTALL_LIB} COMPONENT Runtime 
++              LIBRARY DESTINATION ${INSTALL_LIB} COMPONENT Runtime
+               ARCHIVE DESTINATION ${INSTALL_LIB} COMPONENT Library )
+   endforeach()
+ endmacro ()
