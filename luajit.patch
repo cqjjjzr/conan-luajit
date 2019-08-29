@@ -2,19 +2,43 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 9a8b5c0..5bda2b3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -303,7 +303,7 @@ set ( LJCORE_C
+@@ -46,6 +46,8 @@
+ option ( LUAJIT_CPU_SSE2 "Disable SSE2." OFF )
+ option ( LUAJIT_CPU_NOCMOV "Disable NOCMOV." OFF )
+
++option ( LUAJIT_SHARED "Build shared library instead of static linked one." OFF )
++
+ # Tunable variables
+ set ( LUAI_MAXSTACK 65500 CACHE NUMBER "Max. # of stack slots for a thread (<64K)." )
+ set ( LUAI_MAXCSTACK 8000 CACHE NUMBER "Max. # of stack slots for a C func (<10K)." )
+@@ -72,7 +74,9 @@
+
+ if ( WIN32 AND NOT CYGWIN )
+   # Windows systems
+-  add_definitions ( -DLUA_BUILD_AS_DLL -DLUAJIT_OS=LUAJIT_OS_WINDOWS)
++  add_definitions ( -DLUAJIT_OS=LUAJIT_OS_WINDOWS)
++  if (LUAJIT_SHARED)
++    add_definitions ( -DLUA_BUILD_AS_DLL)
+   option ( LUA_BUILD_WLUA "Build wluajit interpreter for no-console applications." ON )
+   set ( LJVM_MODE peobj )
+   # Paths (Double escapes needed)
+@@ -303,7 +307,11 @@
    ${LJLIB_C}
  )
- 
+
 -add_library ( liblua SHARED ${LJCORE_C} ${DEPS} )
-+add_library ( liblua ${LJCORE_C} ${DEPS} )
++if ( LUAJIT_SHARED)
++  add_library ( liblua SHARED ${LJCORE_C} ${DEPS} )
++else()
++  add_library ( liblua ${LJCORE_C} ${DEPS} )
++endif()
  target_link_libraries ( liblua ${LIBS} )
  set_target_properties ( liblua PROPERTIES OUTPUT_NAME lua CLEAN_DIRECT_OUTPUT 1 )
- 
-@@ -318,11 +318,14 @@ if ( LUA_BUILD_WLUA )
+
+@@ -318,11 +326,14 @@
    install_executable ( wluajit )
  endif ()
- 
+
 +export(TARGETS ${PROJECT_NAME}
 +       NAMESPACE ${PROJECT_NAME}::
 +       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake")
@@ -37,7 +61,7 @@ index 310ef94..adac0eb 100644
 @@ -1,6 +1,6 @@
  # LuaDist CMake utility library.
  # Provides sane project defaults and macros common to LuaDist CMake builds.
--# 
+-#
 +#
  # Copyright (C) 2007-2012 LuaDist.
  # by David Manura, Peter Drahoš
@@ -46,18 +70,18 @@ index 310ef94..adac0eb 100644
  option ( INSTALL_VERSION
        "Install runtime libraries and executables with version information." OFF)
  set ( INSTALL_DATA ${INSTALL_SHARE}/${DIST_NAME} CACHE PATH
--      "Directory the package can store documentation, tests or other data in.")  
+-      "Directory the package can store documentation, tests or other data in.")
 +      "Directory the package can store documentation, tests or other data in.")
  set ( INSTALL_DOC  ${INSTALL_DATA}/doc CACHE PATH
        "Recommended directory to install documentation into.")
  set ( INSTALL_EXAMPLE ${INSTALL_DATA}/example CACHE PATH
 @@ -107,16 +107,16 @@ macro ( parse_arguments prefix arg_names option_names)
- 
+
    set ( current_arg_name DEFAULT_ARGS )
    set ( current_arg_list )
--  foreach ( arg ${ARGN} )            
--    set ( larg_names ${arg_names} )    
--    list ( FIND larg_names "${arg}" is_arg_name )                   
+-  foreach ( arg ${ARGN} )
+-    set ( larg_names ${arg_names} )
+-    list ( FIND larg_names "${arg}" is_arg_name )
 +  foreach ( arg ${ARGN} )
 +    set ( larg_names ${arg_names} )
 +    list ( FIND larg_names "${arg}" is_arg_name )
@@ -66,8 +90,8 @@ index 310ef94..adac0eb 100644
        set ( current_arg_name ${arg} )
        set ( current_arg_list )
      else ()
--      set ( loption_names ${option_names} )    
--      list ( FIND loption_names "${arg}" is_option )            
+-      set ( loption_names ${option_names} )
+-      list ( FIND loption_names "${arg}" is_option )
 +      set ( loption_names ${option_names} )
 +      list ( FIND loption_names "${arg}" is_option )
        if ( is_option GREATER -1 )
@@ -79,7 +103,7 @@ index 310ef94..adac0eb 100644
      install ( TARGETS ${_file}
 +              EXPORT luajit-config
                RUNTIME DESTINATION ${INSTALL_BIN} COMPONENT Runtime
--              LIBRARY DESTINATION ${INSTALL_LIB} COMPONENT Runtime 
+-              LIBRARY DESTINATION ${INSTALL_LIB} COMPONENT Runtime
 +              LIBRARY DESTINATION ${INSTALL_LIB} COMPONENT Runtime
                ARCHIVE DESTINATION ${INSTALL_LIB} COMPONENT Library )
    endforeach()
