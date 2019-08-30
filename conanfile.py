@@ -58,6 +58,10 @@ class LuajitConan(ConanFile):
         prefix = os.path.abspath(self.package_folder)
         env_build = AutoToolsBuildEnvironment(self)
         with tools.chdir(self._source_subfolder):
+            tools.replace_in_file("Makefile", "INSTALL_INC=   $(DPREFIX)/include/luajit-$(MAJVER).$(MINVER)",
+                                  "INSTALL_INC=   $(DPREFIX)/include")
+            tools.replace_in_file("Makefile", "INSTALL_LJLIBD= $(INSTALL_SHARE)/luajit-$(VERSION)",
+                                  "INSTALL_LJLIBD= $(INSTALL_SHARE)")
             tools.replace_in_file(
                 "Makefile", "export PREFIX= /usr/local", "export PREFIX= %s" % prefix)
             if self.options.shared:
