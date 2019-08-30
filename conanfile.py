@@ -37,9 +37,7 @@ class LuajitConan(ConanFile):
         cmake = CMake(self)
         cmake_defs = {}
         if (self.options.shared):
-            cmake_defs.extend({
-                "LUAJIT_SHARED": "ON"
-            })
+            cmake_defs["LUAJIT_SHARED"] = "ON"
 
         cmake.configure(defs=cmake_defs)
         return cmake
