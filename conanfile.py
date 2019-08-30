@@ -21,7 +21,7 @@ class LuajitConan(ConanFile):
     _source_subfolder = "source_subfolder"
 
     def build_requirements(self):
-        if platform.system() != "Windows":
+        if self.settings.os != "Windows":
             self.build_requires("readline/7.0@bincrafters/stable")
             self.build_requires("ncurses/6.1@conan/stable")
             self.options["ncurses"].with_termlib = True
