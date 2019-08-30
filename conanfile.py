@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, CMake, tools, AutoToolsBuildEnvironment
 
 class LuajitConan(ConanFile):
     name = "luajit"
@@ -52,6 +52,7 @@ class LuajitConan(ConanFile):
         tools.patch(base_path=self._source_subfolder, patch_file="luajit.patch")
         cmake = self._configure_cmake()
         cmake.build()
+        cmake.install()
 
     def _build_autotools(self):
         prefix = os.path.abspath(self.package_folder)
@@ -73,8 +74,6 @@ class LuajitConan(ConanFile):
 
     def package(self):
         self.copy("COPYRIGHT", dst="licenses", src=self._source_subfolder)
-        cmake = self._configure_cmake()
-        cmake.install()
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
