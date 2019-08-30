@@ -48,10 +48,28 @@ class LuajitConan(ConanFile):
         cmake.configure(defs=cmake_defs)
         return cmake
 
-    def build(self):
+    def _build_cmake(self):
         tools.patch(base_path=self._source_subfolder, patch_file="luajit.patch")
         cmake = self._configure_cmake()
         cmake.build()
+
+    def _build_autotools(self):
+        prefix = os.path.abspath(self.package_folder)
+        env_build = AutoToolsBuildEnvironment(self)
+        configure_args = ['--prefix=%s' % prefix]
+        if self.options.shared:
+            configure_args.extend(['--disable-static', '--enable-shared'])
+        else:
+            configure_args.extend(['--enable-static', '--disable-shared'])
+        with tools.chdir(self._source_subfolder):
+            env_build.make()
+            env_build.install()
+
+    def build(self):
+        if self.settings.os == "Windows":
+            self._build_cmake()
+        else:
+            self._build_autotools()
 
     def package(self):
         self.copy("COPYRIGHT", dst="licenses", src=self._source_subfolder)
