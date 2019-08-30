@@ -57,12 +57,15 @@ class LuajitConan(ConanFile):
     def _build_autotools(self):
         prefix = os.path.abspath(self.package_folder)
         env_build = AutoToolsBuildEnvironment(self)
-        configure_args = ['--prefix=%s' % prefix]
-        if self.options.shared:
-            configure_args.extend(['--disable-static', '--enable-shared'])
-        else:
-            configure_args.extend(['--enable-static', '--disable-shared'])
         with tools.chdir(self._source_subfolder):
+            tools.replace_in_file(
+                "Makefile", "export PREFIX= /usr/local", "export PREFIX= %s" % prefix)
+            if self.options.shared:
+                tools.replace_in_file(
+                    "src/Makefile", "BUILDMODE= mixed", "BUILDMODE= dynamic")
+            else:
+                tools.replace_in_file(
+                    "src/Makefile", "BUILDMODE= mixed", "BUILDMODE= static")
             env_build.make()
             env_build.install()
 
