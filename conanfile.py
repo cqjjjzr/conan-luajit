@@ -20,6 +20,12 @@ class LuajitConan(ConanFile):
     generators = "cmake"
     _source_subfolder = "source_subfolder"
 
+    def build_requirements(self):
+        if platform.system() != "Windows":
+            self.build_requires("readline/7.0@bincrafters/stable")
+            self.build_requires("ncurses/6.1@conan/stable")
+            self.options["ncurses"].with_termlib = True
+
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
