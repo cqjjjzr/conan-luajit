@@ -13,8 +13,28 @@ class LuajitConan(ConanFile):
     author = "Konstantin Nadejin <nadejin.konstantin@gmail.com>"
     topics = ("conan", "luajit", "lua", "jit")
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False], "fPIC": [True, False]}
-    default_options = {"shared": False, "fPIC": True}
+    options = {"shared": [True, False], "fPIC": [True, False], 
+               "lua52_compat": [True, False],
+               "disable_ffi": [True, False],
+               "disable_jit": [True, False],
+               "use_sysmalloc": [True, False],
+               "use_valgrind": [True, False],
+               "use_gdbjit": [True, False],
+               "use_apicheck": [True, False],
+               "use_assert": [True, False],
+               "disable_sse2": [True, False],
+               "disable_nocmov": [True, False]}
+    default_options = {"shared": False, "fPIC": True, 
+                       "lua52_compat": False,
+                       "disable_ffi": False,
+                       "disable_jit": False,
+                       "use_sysmalloc": False,
+                       "use_valgrind": False,
+                       "use_gdbjit": False,
+                       "use_apicheck": False,
+                       "use_assert": False,
+                       "disable_sse2": False,
+                       "disable_nocmov": False}
     exports = "LICENSE"
     exports_sources = ["CMakeLists.txt", "luajit.patch"]
     generators = "cmake"
@@ -42,8 +62,28 @@ class LuajitConan(ConanFile):
     def _configure_cmake(self):
         cmake = CMake(self)
         cmake_defs = {}
-        if (self.options.shared):
+        if self.options.shared:
             cmake_defs["LUAJIT_SHARED"] = "ON"
+        if self.options.lua52_compat:
+            cmake_defs["LUAJIT_ENABLE_LUA52COMPAT"] = "ON"
+        if self.options.disable_ffi:
+            cmake_defs["LUAJIT_DISABLE_FFI"] = "ON"
+        if self.options.disable_jit:
+            cmake_defs["LUAJIT_DISABLE_JIT"] = "ON"
+        if self.options.use_sysmalloc:
+            cmake_defs["LUAJIT_USE_SYSMALLOC"] = "ON"
+        if self.options.use_valgrind:
+            cmake_defs["LUAJIT_USE_VALGRIND"] = "ON"
+        if self.options.use_gdbjit:
+            cmake_defs["LUAJIT_USE_GDBJIT"] = "ON"
+        if self.options.use_apicheck:
+            cmake_defs["LUA_USE_APICHECK"] = "ON"
+        if self.options.use_assert:
+            cmake_defs["LUA_USE_ASSERT"] = "ON"
+        if self.options.disable_sse2:
+            cmake_defs["LUAJIT_CPU_SSE2"] = "ON"
+        if self.options.disable_nocmov:
+            cmake_defs["LUAJIT_CPU_NOCMOV"] = "ON"
 
         cmake.configure(defs=cmake_defs)
         return cmake
@@ -74,10 +114,7 @@ class LuajitConan(ConanFile):
             env_build.install()
 
     def build(self):
-        if self.settings.os == "Windows":
-            self._build_cmake()
-        else:
-            self._build_autotools()
+        self._build_cmake()
 
     def package(self):
         self.copy("COPYRIGHT", dst="licenses", src=self._source_subfolder)
